@@ -54,7 +54,6 @@ int main(int argc, char **argv) {
 
 	// Loop through the rest of the file
 	while (ahead_count > 0) {
-		fprintf(stderr, "ahead_count: %zu\n", ahead_count);
 		// If there is space left in the lookahead, fill it up
 		while (ahead_count < F) {
 			int c = getchar();
@@ -72,7 +71,7 @@ int main(int argc, char **argv) {
 		for (size_t i = 0; i < N; i++) {
 			size_t j;
 			for (j = 0; j < ahead_count; j++) {
-				if (dictionary[(i + j) % N] != lookahead[(ahead_start + i) % F]) {
+				if (dictionary[(i + j) % N] != lookahead[(ahead_start + j) % F]) {
 					break;
 				}
 			}
@@ -82,12 +81,6 @@ int main(int argc, char **argv) {
 				bestlen = j;
 			}
 		}
-
-		fprintf(stderr, "Found %zu at %zu\n", bestlen, best);
-		for (size_t i = 0; i < bestlen; i++) {
-			printf("%02x ", dictionary[i % N]);
-		}
-		printf("\n");
 
 		if (bestlen > THRESHOLD) {
 			// Found a usable match
@@ -101,8 +94,8 @@ int main(int argc, char **argv) {
 
 			// Put whatever was used in the dictionary again
 			for (size_t i = 0; i < bestlen; i++) {
-				dictionary[dictionary_where % F] = lookahead[(ahead_start + i) % F];
-				dictionary_where = (dictionary_where + 1) % F;
+				dictionary[dictionary_where % N] = lookahead[(ahead_start + i) % F];
+				dictionary_where = (dictionary_where + 1) % N;
 			}
 
 			// Remove used text from lookahead
@@ -111,18 +104,29 @@ int main(int argc, char **argv) {
 		} else {
 			// Output one byte literally
 			output[output_count] = lookahead[ahead_start % F];
+			output_literal[output_count] = true;
+			output_count++;
 
 			if (output_count == 8) {
 				do_output(output, output_literal, output_count);
 			}
 
 			// Put that byte into the dictionary for future use
-			dictionary[dictionary_where % F] = lookahead[ahead_start % F];
-			dictionary_where = (dictionary_where + 1) % F;
+			dictionary[dictionary_where % N] = lookahead[ahead_start % F];
+			dictionary_where = (dictionary_where + 1) % N;
 
 			// Remove used text from lookahead
 			ahead_start = (ahead_start + 1) % F;
 			ahead_count -= 1;
+		}
+
+		if (ahead_count == 0) {
+			int c = getchar();
+			if (c == EOF) {
+				break;
+			}
+			lookahead[(ahead_start + ahead_count) % F] = c;
+			ahead_count++;
 		}
 	}
 
