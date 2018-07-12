@@ -5,7 +5,7 @@
 #define F 18 /* maximum match length */
 #define THRESHOLD 2 /* minimum match length */
 
-void do_output(short *output, bool *output_literal, size_t &output_count) {
+void do_output(unsigned char *output, bool *output_literal, size_t &output_count) {
 	unsigned char flags = 0;
 	for (size_t i = 0; i < output_count; i++) {
 		flags |= output_literal[i] << i;
@@ -14,10 +14,10 @@ void do_output(short *output, bool *output_literal, size_t &output_count) {
 
 	for (size_t i = 0; i < output_count; i++) {
 		if (output_literal[i]) {
-			putchar(output[i]);
+			putchar(output[i * 2]);
 		} else {
-			putchar(output[i] & 0xFF);
-			putchar(output[i] >> 8);
+			putchar(output[i * 2]);
+			putchar(output[i * 2 + 1]);
 		}
 	}
 
@@ -25,8 +25,8 @@ void do_output(short *output, bool *output_literal, size_t &output_count) {
 }
 
 int main(int argc, char **argv) {
-	// Either a byte or an offset+length
-	short output[8];
+	// Each pair of bytes is a raw byte or an encoded offset and length
+	unsigned char output[16];
 	// True if a byte, false if an offset+length
 	bool output_literal[8];
 	// Number of output buffer positions used
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 
 	// Start with a dictionary of spaces
 	unsigned char dictionary[N];
-	size_t dictionary_where = 0;
+	size_t dictionary_where = N - F;
 	for (size_t i = 0; i < N; i++) {
 		dictionary[i] = ' ';
 	}
@@ -84,7 +84,8 @@ int main(int argc, char **argv) {
 
 		if (bestlen > THRESHOLD) {
 			// Found a usable match
-			output[output_count] = best | ((bestlen - THRESHOLD - 1) << 4);
+			output[output_count * 2] = best & 0xFF;
+			output[output_count * 2 + 1] = (bestlen - THRESHOLD - 1) | ((best & 0xFFFF0000) >> 4);
 			output_literal[output_count] = false;
 			output_count++;
 
@@ -102,8 +103,8 @@ int main(int argc, char **argv) {
 			ahead_start = (ahead_start + bestlen) % F;
 			ahead_count -= bestlen;
 		} else {
-			// Output one byte literally
-			output[output_count] = lookahead[ahead_start % F];
+			// No usable match, so output one byte literally
+			output[output_count * 2] = lookahead[ahead_start % F];
 			output_literal[output_count] = true;
 			output_count++;
 
