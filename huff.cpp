@@ -15,12 +15,17 @@ struct node {
 	size_t weight;
 };
 
-void walk(std::shared_ptr<node> n, std::string prefix) {
+void walk(std::shared_ptr<node> n, std::string prefix, size_t *depths) {
 	if (n->code >= 0) {
-		printf("%c %s\n", n->code, prefix.c_str());
+		if (n->code > ' ' && n->code <= '~') {
+			printf("%c %s\n", n->code, prefix.c_str());
+		} else {
+			printf("0x%02x %s\n", n->code, prefix.c_str());
+		}
+		depths[n->code] = prefix.size();
 	} else {
-		walk(n->left, prefix + "0");
-		walk(n->right, prefix + "1");
+		walk(n->left, prefix + "0", depths);
+		walk(n->right, prefix + "1", depths);
 	}
 }
 
@@ -82,7 +87,18 @@ int main(int argc, char **argv) {
 		remaining_nodes.insert(std::pair<size_t, std::shared_ptr<node>>(parent->weight, parent));
 	}
 
+	size_t depths[256];
+
 	// Walk the tree
 
-	walk(remaining_nodes.begin()->second, "");
+	walk(remaining_nodes.begin()->second, "", depths);
+
+	// Figure out how long the encoding would be
+
+	size_t len = 0;
+	for (size_t i = 0; i < text.size(); i++) {
+		len += depths[(unsigned char) text[i]];
+	}
+
+	printf("%zu bits (%zu bytes)\n", len, len / 8);
 }
