@@ -54,16 +54,6 @@ int main(int argc, char **argv) {
 
 	// Loop through the rest of the file
 	while (ahead_count > 0) {
-		// If there is space left in the lookahead, fill it up
-		while (ahead_count < F) {
-			int c = getchar();
-			if (c == EOF) {
-				break;
-			}
-			lookahead[(ahead_start + ahead_count) % F] = c;
-			ahead_count++;
-		}
-
 		size_t best = 0;
 		size_t bestlen = 0;
 
@@ -85,7 +75,7 @@ int main(int argc, char **argv) {
 		if (bestlen > THRESHOLD) {
 			// Found a usable match
 			output[output_count * 2] = best & 0xFF;
-			output[output_count * 2 + 1] = (bestlen - THRESHOLD - 1) | ((best & 0xFFFF0000) >> 4);
+			output[output_count * 2 + 1] = (bestlen - THRESHOLD - 1) | ((best & 0xFF00) >> 4);
 			output_literal[output_count] = false;
 			output_count++;
 
@@ -121,7 +111,8 @@ int main(int argc, char **argv) {
 			ahead_count -= 1;
 		}
 
-		if (ahead_count == 0) {
+		// If there is space left in the lookahead, fill it up
+		while (ahead_count < F) {
 			int c = getchar();
 			if (c == EOF) {
 				break;
