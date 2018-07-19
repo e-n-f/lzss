@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-print "/Helvetica findfont 6 scalefont setfont\n";
+print "/Helvetica findfont 10 scalefont setfont\n";
 print ".5 setlinewidth\n";
 
 while (<>) {
@@ -43,7 +43,7 @@ for ($i = 0; $i <= $#codes; $i++) {
 
 for $code (keys(%codes)) {
 	if ($symbol{$code} ne "") {
-		printf("%.3f %.3f moveto ($symbol{$code}) dup stringwidth pop 2 div neg 0 rmoveto show\n", $sum{$code} / $count{$code}, 612 - 20 * length($code) - 7);
+		printf("%.3f %.3f moveto ($symbol{$code}) dup stringwidth pop 2 div neg 0 rmoveto show\n", $sum{$code} / $count{$code}, 612 - 20 * length($code) - 12);
 	}
 
 	if (length($code) > 0) {
