@@ -33,8 +33,11 @@ for ($i = 0; $i <= $#codes; $i++) {
 
 		$sum{$code1} += ($sum{$codes[$i]} / $count{$codes[$i]});
 		$count{$code1}++;
-		push @codes, $code1;
-		$codes{$code1} = 1;
+
+		if ($codes{$code1} != 1) {
+			push @codes, $code1;
+			$codes{$code1} = 1;
+		}
 	}
 }
 
