@@ -1,0 +1,78 @@
+#!/usr/bin/perl
+
+print "/Helvetica findfont 6 scalefont setfont\n";
+print ".5 setlinewidth\n";
+
+while (<>) {
+	chomp;
+	($symbol, $code) = split(/ /);
+
+	$symbol =~ s/\\/\\\\/g;
+	$symbol =~ s/\(/\\(/g;
+	$symbol =~ s/\)/\\)/g;
+
+	push @codes, $code;
+	push @terminal, $code;
+	$symbol{$code} = $symbol;
+}
+
+%codes = ();
+
+$n = $#codes + 1;
+for ($i = 0; $i <= $#codes; $i++) {
+	$sum{$codes[$i]} = $i * 600 / $n + 6;
+	$count{$codes[$i]} = 1;
+	$codes{$codes[$i]} = 1;
+}
+
+# this pushes onto @codes so it should keep going until it runs out
+for ($i = 0; $i <= $#codes; $i++) {
+	$code1 = $codes[$i];
+	if (length($code1) > 0) {
+		$code1 =~ s/.$//;
+
+		$sum{$code1} += ($sum{$codes[$i]} / $count{$codes[$i]});
+		$count{$code1}++;
+		push @codes, $code1;
+		$codes{$code1} = 1;
+	}
+}
+
+for $code (keys(%codes)) {
+	if ($symbol{$code} ne "") {
+		printf("%.3f %.3f moveto ($symbol{$code}) dup stringwidth pop 2 div neg 0 rmoveto show\n", $sum{$code} / $count{$code}, 612 - 20 * length($code) - 7);
+	}
+
+	if (length($code) > 0) {
+		$code1 = $code;
+		$code1 =~ s/.$//;
+
+		printf("%.3f %.3f moveto %.3f %.3f lineto stroke\n", $sum{$code} / $count{$code}, 612 - 20 * length($code), $sum{$code1} / $count{$code1}, 612 - 20 * length($code1));
+	}
+}
+
+exit 0;
+
+	
+{
+	$level = 150;
+
+	print "306 612 moveto\n";
+	print "1 setlinewidth\n";
+
+	while ($code ne "") {
+		if ($code =~ s/^0//) {
+			printf("%f %f rlineto\n", -$level, -15);
+		} elsif ($code =~ s/^1//) {
+			printf("%f %f rlineto\n", $level, -15);
+		} else {
+			die "$code";
+		}
+
+		print "0 -5 rmoveto\n";
+		$level /= 2;
+	}
+
+	print "0 -10 rmoveto\n";
+	print "($symbol) dup stringwidth pop 2 div neg 0 rmoveto show stroke\n";
+}

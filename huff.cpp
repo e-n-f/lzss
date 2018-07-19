@@ -20,7 +20,7 @@ void walk(std::shared_ptr<node> n, std::string prefix, size_t *depths) {
 		if (n->code > ' ' && n->code <= '~') {
 			printf("%c %s\n", n->code, prefix.c_str());
 		} else {
-			printf("0x%02x %s\n", n->code, prefix.c_str());
+			printf("%02x %s\n", n->code, prefix.c_str());
 		}
 		depths[n->code] = prefix.size();
 	} else {
